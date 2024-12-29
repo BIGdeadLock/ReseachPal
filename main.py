@@ -17,6 +17,7 @@ async def main():
         , deps=deps
     )
     print('Response:', result.data)
+    print(result.usage())
 
 
 if __name__ == '__main__':

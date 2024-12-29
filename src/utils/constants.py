@@ -22,6 +22,8 @@ MODELS_DIR = "models"
 MODELS_PATH = os.path.join(STORE_PATH, MODELS_DIR)
 os.makedirs(MODELS_PATH, exist_ok=True)
 
+ENV_FILE = '.env'
+ENV_FILE_PATH = os.path.join(PROJECT_DIR, ENV_FILE)
 
 # -----------------
 # RETRIEVERS

@@ -1,41 +1,16 @@
-from dataclasses import dataclass
-from datetime import datetime
+
 from abc import ABC, abstractmethod
-from typing import Union, List
-from pydantic import BaseModel
-
-from arxiv import Client
+from typing import Any
 
 
-@dataclass
-class Paper:
-    content: str
-    title: str
-    published: datetime
-    url: str
-    relevant_score: float
-
-    def __repr__(self):
-        return f"""
-        *Title*: {self.title}
-        *Published*: {self.published}
-        **Summary**: {self.content}
-        **URL**: {self.url}
-        """
+from src.domain.state import PaperGraphState
 
 
-class PaperScorer(BaseModel, ABC):
+class RAGStep(ABC):
+    def __init__(self, mock: bool = False) -> None:
+        self._mock = mock
 
     @abstractmethod
-    def score(self, query: Union[str, List[str]], paper: str) -> float:
+    async def generate(self, query: PaperGraphState, *args, **kwargs) -> Any:
         pass
 
-    @abstractmethod
-    async def ascore(self, query: Union[str, List[str]], paper: str) -> float:
-        pass
-
-
-@dataclass
-class ResearchDependencies:
-    client: Client
-    paper_scorer: PaperScorer
