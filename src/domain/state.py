@@ -7,9 +7,10 @@ from src.domain.document import Paper
 from src.domain.queries import Query
 
 class OverallState(BaseModel):
-    query: Union[Query, List[Query]]
+    query: Union[Query, List[Query]] | None = None
+    keywords: List[str] = Field(default_factory=list, description="The keywords to search papers for")
     papers: Annotated[List[Paper], operator.add] = Field(default_factory=list, description="List of papers fetched")
 
-class PaperGraphState(BaseModel):
+class PaperRagGraphState(BaseModel):
     query: Query
-    paper: Paper = None
+    # papers: List[Paper] = None

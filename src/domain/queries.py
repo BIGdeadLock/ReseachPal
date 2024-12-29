@@ -1,4 +1,7 @@
+from typing import List
+
 from pydantic import BaseModel, Field
+
 from src.domain.types import DataCategory
 
 
@@ -13,3 +16,7 @@ class Query(BaseModel):
     @classmethod
     def from_str(cls, query: str) -> "Query":
         return Query(content=query.strip("\n "))
+
+    @classmethod
+    def from_kw(cls, kw: List[str]) -> "Query":
+        return Query(content=", ".join(kw))

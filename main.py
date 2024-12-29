@@ -1,23 +1,22 @@
 
 
-from arxiv import Client
 import asyncio
+from loguru import logger
 
-from src.tools.papers.scorer import LlmAsJudge
-from src.agent import research_agent, ResearchDependencies
-
+from src.agent.graph import agent
+from src.domain.state import OverallState
+from src.domain.queries import Query
+from src.utils.opik_utils import configure_opik
 
 async def main():
+    configure_opik()
+    query = Query.from_kw(["LLM", "Cybersecurity"])
+    init_state = OverallState(query=query)
 
-    deps = ResearchDependencies(
-        client=Client(), paper_scorer=LlmAsJudge()
-    )
-    result = await research_agent.run(
-        'Give me research papers that mention the use of LLM in the cybersecurity world.'
-        , deps=deps
-    )
-    print('Response:', result.data)
-    print(result.usage())
+    result = await agent.ainvoke(init_state)
+    logger.info(result)
+    return result
+
 
 
 if __name__ == '__main__':

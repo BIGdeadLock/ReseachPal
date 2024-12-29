@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 
-from src.domain.state import PaperGraphState
+from src.domain.state import PaperRagGraphState
 
 
 class RAGStep(ABC):
@@ -11,6 +11,6 @@ class RAGStep(ABC):
         self._mock = mock
 
     @abstractmethod
-    async def generate(self, query: PaperGraphState, *args, **kwargs) -> Any:
+    async def generate(self, query: PaperRagGraphState, *args, **kwargs) -> Any:
         pass
 
