@@ -13,6 +13,8 @@ OUTPUT_DIR = 'output'
 OUTPUT_DIR_PATH = os.path.join(PROJECT_DIR, OUTPUT_DIR)
 os.makedirs(OUTPUT_DIR_PATH, exist_ok=True)
 
+REPORT_FILE = "report.md"
+REPORT_FILE_PATH = os.path.join(OUTPUT_DIR_PATH, REPORT_FILE)
 
 STORE_DIR = "store"
 STORE_PATH = os.path.join(PROJECT_DIR, STORE_DIR)
@@ -28,7 +30,8 @@ ENV_FILE_PATH = os.path.join(PROJECT_DIR, ENV_FILE)
 # -----------------
 # RETRIEVERS
 # -----------------
-TOP_K_DEFAULT = 5
+TOP_K_DEFAULT = 20
+KEEP_TOP_K_DEFAULT = 5
 RELEVANT_SCORE_DEFAULT = 0
 
 

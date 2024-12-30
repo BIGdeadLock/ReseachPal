@@ -1,7 +1,5 @@
-import asyncio
-from datetime import datetime
+
 from typing import Any
-from loguru import logger
 from pydantic import PrivateAttr, BaseModel
 from langchain_openai.chat_models import AzureChatOpenAI
 import opik
@@ -9,13 +7,12 @@ import opik
 from src.domain.document import Paper
 from src.domain.prompt import Prompt
 from src.domain.queries import Query
-from src.utils.config import config
 from src.tools.rag.base import RAGStep
+from src.utils.config import config
 from src.utils.constants import OPENAI_GPT4O_MINI_DEPLOYMENT_ID as GPT4, OPENAI_API_GPTO_VERSION as API_VER
-from src.domain.state import PaperRagGraphState
 
 
-prompt = Prompt.from_template(
+prompt = Prompt(
     """
     You are a grader assessing relevance of a retrieved document to a user query. \n 
     Here is the retrieved academic paper: \n\n {paper} \n\n
@@ -40,7 +37,7 @@ class Score(BaseModel):
     score: float
 
 
-class LlmAsJudge:
+class LlmAsJudge(RAGStep):
     # Private attributes for non-Pydantic fields
     _llm: Any = PrivateAttr()
 
@@ -57,7 +54,7 @@ class LlmAsJudge:
         self._llm = model.with_structured_output(Score)
 
     @opik.track(name="LlmAsAJudge.generate")
-    async def generate(self,query: Query, paper: Paper) -> float:
+    async def agenerate(self, query: Query, paper: Paper) -> float:
         chain = prompt.generate_prompt() | self._llm
         result = await chain.ainvoke(dict(query=query.content, paper=paper.title))
         return result.score

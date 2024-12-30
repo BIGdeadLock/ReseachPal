@@ -1,7 +1,6 @@
 import asyncio
 
 import opik
-from langgraph.types import interrupt
 from loguru import logger
 from pydantic import PrivateAttr
 from langchain_openai.chat_models import AzureChatOpenAI
@@ -10,10 +9,10 @@ from langgraph.graph import StateGraph, START, END
 
 from src.domain.prompt import Prompt
 from src.domain.queries import Query
-from src.domain.state import OverallState
+from src.domain.state import Query
 from src.utils.constants import OPENAI_GPT4O_DEPLOYMENT_ID as GPT4, OPENAI_API_GPTO_VERSION as API_VER
 from src.utils.config import config
-from src.utils.opik_utils import configure_opik
+from src.monitoring.opik import configure_opik
 from langgraph.checkpoint.memory import MemorySaver
 
 ques_prompt = Prompt.from_template("""
@@ -44,7 +43,7 @@ class HumanInTheLoop:
         )
 
     @opik.track(name="HumanInTheLoop.ask")
-    async def ask(self, state: OverallState):
+    async def ask(self, state: Query):
         """
         Use to ask the user a question to better understand he's, or she's query. You can use it to ask
         for more specific details like subdomains, interest, etc. After the user will give he's, or she's answer,
@@ -69,12 +68,12 @@ if __name__ == '__main__':
 
     query = Query.from_str("Give me research papers that mention the use of LLM in the cybersecurity world.")
     human = HumanInTheLoop()
-    graph = StateGraph(OverallState)
+    graph = StateGraph(Query)
     graph.add_node(human.name, human.ask)
     graph.add_edge(START, human.name)
     graph.add_edge(human.name, END)
     agent = graph.compile(checkpointer=checkpointer)
     loop = asyncio.get_event_loop()
     thread_config = {"configurable": {"thread_id": "some_id"}}
-    res = loop.run_until_complete(agent.ainvoke(OverallState(query=query), config=thread_config))
+    res = loop.run_until_complete(agent.ainvoke(Query(query=query), config=thread_config))
     logger.info(res['query'])

@@ -3,16 +3,21 @@ from datetime import datetime
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from src.utils.constants import TOP_K_DEFAULT, RELEVANT_SCORE_DEFAULT, ENV_FILE_PATH
+import src.utils.constants as consts
 
 
-class BaseServiceSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=ENV_FILE_PATH, extra='ignore')
-
-class ArxivSettings(BaseModel):
-    max_results: int = TOP_K_DEFAULT
-    relevance_score_threshold: int = RELEVANT_SCORE_DEFAULT
+class PapersRetrieverSettings(BaseModel):
+    max_results: int = consts.TOP_K_DEFAULT
+    keep_top_k_results: int = consts.KEEP_TOP_K_DEFAULT
+    relevance_score_threshold: int = consts.RELEVANT_SCORE_DEFAULT
     publish_year_threshold: datetime | None = None
+
+class EmbeddingsSettings(BaseModel):
+    cross_encoder_model_id : str
+    model_device: str = "cpu"
+
+class MongoDBSettings(BaseModel):
+    host: str
 
 class OpenAISettings(BaseModel):
     url: str
@@ -27,11 +32,13 @@ class OpikSettings(BaseModel):
     project: str
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=ENV_FILE_PATH, env_nested_delimiter="__")
+    model_config = SettingsConfigDict(env_file=consts.ENV_FILE_PATH, env_nested_delimiter="__")
     openai: OpenAISettings
     opik: OpikSettings
-    arxiv: ArxivSettings = ArxivSettings()
+    arxiv: PapersRetrieverSettings = PapersRetrieverSettings()
     llm_judge: LLMJudgeSettings = LLMJudgeSettings()
+    mongo: MongoDBSettings
+    embeddings: EmbeddingsSettings
 
 
 
