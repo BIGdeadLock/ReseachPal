@@ -18,13 +18,7 @@ class Paper:
         return self.title == other.title
 
     def __repr__(self):
-        return f"""
-        Title: {self.title}
-        Published: {self.published}
-        Summary: {self.content}
-        URL: {self.url}
-        Relevant Score: {self.relevant_score}
-        """
+        return f"**Title:** {self.title}\n**Published:** {self.published}\n**Summary:** {self.content}\n**URL:** {self.url}\n**Relevant Score:** {self.relevant_score}\n"
 
 @dataclass
 class Report:
@@ -33,13 +27,4 @@ class Report:
 
     def __repr__(self):
         papers = '\n\n'.join([str(p) for p in self.papers])
-
-        return f"""
-        {self.content}
-        
-        ------------------------------------
-        
-        *Papers:*
-        
-        {papers}
-        """.replace('\t', '')
+        return f"{self.content}\n\n---\n\n# Papers:\n\n{papers}\n"
