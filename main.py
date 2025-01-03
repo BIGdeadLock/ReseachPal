@@ -7,7 +7,7 @@ from src.utils.constants import REPORT_FILE_PATH
 
 async def main():
     configure_opik()
-    query = Query.from_kw(["LLM","Agentic System", "Cybersecurity Attacks"])
+    query = Query.from_str("I'm looking for papers on the cybersecurity attacks on agents or agentic systems")
 
     report = await get_interesting_papers(query)
 

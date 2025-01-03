@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List
 
-
 @dataclass
 class Paper:
     content: str
@@ -10,6 +9,7 @@ class Paper:
     published: datetime
     url: str
     relevant_score: float
+    embedding: list[float] = None
 
     def __hash__(self):
         return hash(self.title)

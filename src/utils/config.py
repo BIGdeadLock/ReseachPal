@@ -10,11 +10,13 @@ class PapersRetrieverSettings(BaseModel):
     max_results: int = consts.TOP_K_DEFAULT
     keep_top_k_results: int = consts.KEEP_TOP_K_DEFAULT
     relevance_score_threshold: int = consts.RELEVANT_SCORE_DEFAULT
+    mmr_score_threshold: float = consts.MMR_THRESHOLD_DEFAULT
     publish_year_threshold: datetime | None = None
 
 class EmbeddingsSettings(BaseModel):
     cross_encoder_model_id : str
     model_device: str = "cpu"
+    text_embedding_model_id: str
 
 class MongoDBSettings(BaseModel):
     host: str

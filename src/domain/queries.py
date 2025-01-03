@@ -9,6 +9,8 @@ class Query(BaseModel):
 
     content: str
     metadata: dict = Field(default_factory=dict)
+    keywords: List[str] = Field(default_factory=list)
+    embedding: list[float] = None
 
     class Config:
         category = DataCategory.QUERIES

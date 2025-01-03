@@ -32,6 +32,7 @@ class PapersRetriever(RAGStep):
 
     async def agenerate(self, query: Query, **kwargs) -> List[Paper]:
         """Returns the most relevant papers with relevance scores based on the user query
+        Two steps are applied: First - MMR score for diversity, then Cross encoder for relevance
 
             Args:
                 search_queries: Can be a list of queries or keywords: [q1, q2,...]. It can also be a string.
@@ -41,23 +42,44 @@ class PapersRetriever(RAGStep):
             :param **kwargs:
             """
 
-        n_generated_queries = await self._query_expander.generate(query)
+        n_generated_queries = await QueryExpansion().agenerate(query)
+
         logger.info(f"Successfully generated {len(n_generated_queries)} search queries.",)
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            search_tasks = [executor.submit(self._search, _query_model, config.arxiv.max_results)
-                            for _query_model in n_generated_queries]
+        # Use asyncio to fetch papers for each query concurrently
+        search_tasks = [
+            self._search_and_rerank(_query_model, config.arxiv.max_results, config.arxiv.keep_top_k_results)
+            for _query_model in n_generated_queries
+        ]
+        all_papers = await asyncio.gather(*search_tasks)
 
-            n_k_documents = [task.result() for task in concurrent.futures.as_completed(search_tasks)]
-            n_k_documents = misc.flatten(n_k_documents)
-            n_k_documents = list(set(n_k_documents))
+        # Flatten the results and remove duplicates
+        n_k_documents = misc.flatten(all_papers)
+        n_k_documents = list(set(n_k_documents))
 
-        logger.info(f"Successfully fetched {len(n_k_documents)} papers.", )
-
-        ranked_documents = self._rerank(query, n_k_documents, config.arxiv.keep_top_k_results)
-        papers = await self._score(query, ranked_documents)
+        papers = await self._score(query, n_k_documents)
 
         return papers
+
+    async def _search_and_rerank(self, query: Query, top_k: int, keep_top_k: int) -> List[Paper]:
+        """
+        Searches and reranks papers for a given query.
+
+        Args:
+            query: The search query.
+            top_k: Maximum number of search results.
+            keep_top_k: Number of top results to keep after reranking.
+
+        Returns:
+            A list of reranked Papers.
+        """
+        # Search for papers
+        search_results = await asyncio.to_thread(self._search, query, top_k)
+
+        # Rerank the search results
+        reranked_papers = await self._rerank(query, search_results, keep_top_k)
+
+        return reranked_papers
 
     def _search(self, query: Query, top_k) -> List[Paper]:
         search = Search(
@@ -75,9 +97,9 @@ class PapersRetriever(RAGStep):
             for paper in Client().results(search)
         ]
 
-    def _rerank(self, query: Query, papers: list[Paper], keep_top_k: int):
+    async def _rerank(self, query: Query, papers: list[Paper], keep_top_k: int):
 
-        reranked_documents = self._reranker.generate(query=query, papers=papers, keep_top_k=keep_top_k)
+        reranked_documents = await self._reranker.agenerate(query=query, papers=papers, keep_top_k=keep_top_k)
         logger.info(f"{len(reranked_documents)} documents reranked successfully.")
         return reranked_documents
 

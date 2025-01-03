@@ -1,9 +1,10 @@
+
 from typing import Any
 from langchain_openai.chat_models import AzureChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 from pydantic import PrivateAttr
-import opik
 from loguru import logger
+from opik import track
 
 from src.domain.document import Paper, Report
 from src.domain.queries import Query
@@ -28,6 +29,7 @@ prompt = Prompt(
     """
 )
 
+
 class PapersReportGenerator(RAGStep):
     name: str = "report_generator"
     _llm: Any = PrivateAttr()
@@ -42,7 +44,7 @@ class PapersReportGenerator(RAGStep):
                 temperature=0.5
         )
 
-    @opik.track(name="ReportGenerator.generate")
+    @track(name="ReportGenerator.generate")
     async def agenerate(self, query: Query, papers: list[Paper], **kwargs) -> Report:
         """
 
