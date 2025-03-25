@@ -1,30 +1,62 @@
-from dataclasses import dataclass
-from datetime import datetime
-from typing import List
 
-@dataclass
-class Paper:
-    content: str
-    title: str
-    published: datetime
+from pydantic import BaseModel, Field
+
+from src.utils.misc import generate_random_hex
+
+class DocumentMetadata(BaseModel):
     url: str
-    relevant_score: float
-    embedding: list[float] = None
+    platform: str
+    title: str
+    properties: dict = Field(default_factory=dict)
 
-    def __hash__(self):
-        return hash(self.title)
 
-    def __eq__(self, other):
-        return self.title == other.title
-
-    def __repr__(self):
-        return f"**Title:** {self.title}\n**Published:** {self.published}\n**Summary:** {self.content}\n**URL:** {self.url}\n**Relevant Score:** {self.relevant_score}\n"
-
-@dataclass
-class Report:
+class Document(BaseModel):
+    id: str = Field(default_factory=lambda: generate_random_hex(length=32))
+    metadata: DocumentMetadata
     content: str
-    papers: List[Paper]
+    user_score: float | None = None
+    summary: str | None = None
 
-    def __repr__(self):
-        papers = '\n\n'.join([str(p) for p in self.papers])
-        return f"{self.content}\n\n---\n\n# Papers:\n\n{papers}\n"
+    def add_summary(self, summary: str) -> "Document":
+        self.summary = summary
+
+        return self
+
+    def add_quality_score(self, score: float) -> "Document":
+        self.user_score = score
+
+        return self
+
+
+    def __eq__(self, other: object) -> bool:
+        """Compare two Document objects for equality.
+
+        Args:
+            other: Another object to compare with this Document.
+
+        Returns:
+            bool: True if the other object is a Document with the same ID.
+        """
+        if not isinstance(other, Document):
+            return False
+        return self.id == other.id
+
+    def __hash__(self) -> int:
+        """Generate a hash value for the Document.
+
+        Returns:
+            int: Hash value based on the document's ID.
+        """
+        return hash(self.id)
+
+
+class EmbeddedDocument(Document):
+    embedding: list[float]
+
+    @classmethod
+    def from_document_embedding(cls, document: Document, embedding: list[float]) -> "EmbeddedDocument":
+        return EmbeddedDocument(
+            content=document.content,
+            metadata=document.metadata,
+            embedding=embedding
+        )

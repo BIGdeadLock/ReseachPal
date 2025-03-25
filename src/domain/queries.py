@@ -1,5 +1,3 @@
-from typing import List
-
 from pydantic import BaseModel, Field
 
 from src.domain.types import DataCategory
@@ -9,8 +7,6 @@ class Query(BaseModel):
 
     content: str
     metadata: dict = Field(default_factory=dict)
-    keywords: List[str] = Field(default_factory=list)
-    embedding: list[float] = None
 
     class Config:
         category = DataCategory.QUERIES
@@ -19,6 +15,9 @@ class Query(BaseModel):
     def from_str(cls, query: str) -> "Query":
         return Query(content=query.strip("\n "))
 
-    @classmethod
-    def from_kw(cls, kw: List[str]) -> "Query":
-        return Query(content=", ".join(kw))
+class CollectorQuery(BaseModel):
+    content: str
+    platform: str | None = None
+
+    def replace_content(self, new_content: str) -> "CollectorQuery":
+        return CollectorQuery(content=new_content, platform=self.platform)

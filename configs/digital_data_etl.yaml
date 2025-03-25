@@ -1,0 +1,10 @@
+parameters:
+  interested:
+    - LLM
+    - cybersecurity
+    - agents
+  platforms:
+    - arxiv
+    - github
+
+
