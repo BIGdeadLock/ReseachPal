@@ -46,8 +46,8 @@ class QdrantDatabaseConnector:
 
         payload = document.metadata.model_dump() | dict(content = document.content)
 
-        _id = str(payload.pop("id"))
-        vector = payload.pop("embedding", {})
+        _id = document.id
+        vector = document.embedding
         if vector and isinstance(vector, np.ndarray):
             vector = vector.tolist()
 

@@ -166,9 +166,8 @@ class MongoDBService(Generic[T]):
             docs_filter_update_kw = [docs_filter_update_kw]
 
         for doc_filter, kw in docs_filter_update_kw:
-            document_to_update = self.fetch_documents(1, doc_filter)
-            doc_id = document_to_update[0].id
-            self.collection.update_one(doc_id, {"$set": kw})
+            logger.info(f"Updating document filter: {doc_filter}, with {kw}")
+            self.collection.update_one(doc_filter, {"$set": kw})
 
     def __parse_documents(self, documents: list[dict]) -> list[T]:
         """Convert MongoDB documents to Pydantic model instances.

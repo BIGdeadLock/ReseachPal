@@ -5,14 +5,15 @@ from src.domain.document import Document, EmbeddedDocument
 from src.infrastructure.mongo import MongoDBService
 from src.infrastructure.qdrant import QdrantDatabaseConnector
 from src.models import EmbeddingModelSingleton
-from src.utils.constants import RAW_DOCUMENT_COLLECTION_NAME, FAVORITES_COLLECTION_NAME
+from src.utils.constants import RAW_DOCUMENT_COLLECTION_NAME, FAVORITES_COLLECTION_NAME, FIND_ONE_URL_QUERY_KEY
 
 
 def update(document: Document, threshold: int = 3):
 
     # Step 1 - Update the feedback score
     with MongoDBService(model=Document, collection_name=RAW_DOCUMENT_COLLECTION_NAME) as service:
-       service.update_documents((document.metadata.url, dict(feedback=document.user_score)))
+       service.update_documents(({FIND_ONE_URL_QUERY_KEY: document.metadata.url},
+                                dict(user_score=document.user_score)))
 
     logger.info(f"Updated Document score in {RAW_DOCUMENT_COLLECTION_NAME} collection")
 
