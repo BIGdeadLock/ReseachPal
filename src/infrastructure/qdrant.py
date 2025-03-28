@@ -8,12 +8,12 @@ import numpy as np
 from src.config import settings
 from src.domain.document import Document
 from src.models.embeddings import EmbeddingModelSingleton
-
+from src.utils.constants import FAVORITES_COLLECTION_NAME
 
 class QdrantDatabaseConnector:
     _client: QdrantClient | None = None
 
-    def __init__(self, collection_name: str = "favorites"):
+    def __init__(self, collection_name: str = FAVORITES_COLLECTION_NAME):
         self._collection_name = collection_name
         try:
             if settings.USE_QDRANT_CLOUD:
@@ -61,7 +61,8 @@ class QdrantDatabaseConnector:
                 f"Collection '{self._collection_name}' does not exist. Trying to create the collection and reinsert the documents."
             )
 
-            self._client.create_collection()
+            vectors_config = VectorParams(size=EmbeddingModelSingleton().embedding_size, distance=Distance.COSINE)
+            self._client.create_collection(collection_name=self._collection_name, vectors_config=vectors_config)
 
             try:
                 self._bulk_insert(documents)
@@ -74,13 +75,11 @@ class QdrantDatabaseConnector:
 
     def create_collection(self) -> bool:
         vectors_config = VectorParams(size=EmbeddingModelSingleton().embedding_size, distance=Distance.COSINE)
-
         return self._client.create_collection(collection_name=self._collection_name, vectors_config=vectors_config)
 
 
     def _bulk_insert(self, documents: list[Document]) -> None:
         points = [self.to_point(doc) for doc in documents]
-
         self._client.upsert(collection_name=self._collection_name, points=points)
 
     def close(self):

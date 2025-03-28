@@ -19,7 +19,7 @@ class ArxivCollector(BaseCollector):
         logger.info(f"Starting retrieving papers for query: {query.content}")
 
         search = Search(
-            query=query.content.strip(),
+            query=query.content.replace('"',""), # quotes marks do not work in arxiv
             max_results=settings.DATA_SOURCE_MAX_RESULTS,
         )
 
@@ -33,7 +33,7 @@ class ArxivCollector(BaseCollector):
                         title=paper.title,
                         url=paper.pdf_url,
                         platform=self.platform,
-                        properties=dict(release_date=paper.published.strftime("%Y-%M-%d"),)
+                        properties=dict(release_date=paper.published.strftime("%Y-%M-%d"),query=query.content.strip())
                     )
                 )
             )

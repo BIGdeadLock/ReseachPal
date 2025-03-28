@@ -1,14 +1,11 @@
 from gitingest import ingest
 from loguru import logger
-from sqlalchemy.testing.suite.test_reflection import metadata
 
-from src.utils.misc import num_tokens_from_string
 from src.domain.queries import CollectorQuery
 from src.models.gemini import Gemini
-
 from .base import BaseCollector
 from .constants import MAX_TOKENS_ALLOWED, TAVILIY_GITHUB_MOCK_RESULTS
-from .web import TaviliyAdapter, WebDocument
+from .web import TaviliyAdapter, WebDocument, TavilySearchResultFilter
 from ...domain.document import Document, DocumentMetadata
 
 
@@ -30,14 +27,13 @@ class GithubCollector(BaseCollector):
         else:
             web_documents = TaviliyAdapter().search(query.content)
 
+        # Filter results to include only github results
+        web_documents = TavilySearchResultFilter().platform_filter(platform=query.platform, results=web_documents)
+
         documents = []
 
         for document in web_documents:
             link = document.link
-
-            if "github" not in link:
-                logger.warning(f"Found non github link: {link}, Skipping")
-                continue
 
             logger.info(f"Starting scrapping GitHub repository: {link}")
 
@@ -45,22 +41,30 @@ class GithubCollector(BaseCollector):
             summary, tree, content = ingest(link, include_patterns="*.md", exclude_patterns=self._ignore)
             readme = content.replace("=", "").replace("\n", " ").strip()
 
-            num_tokens = num_tokens_from_string(readme)
             # Create a small summary for the readme if it is above 500 tokens
-            if num_tokens > MAX_TOKENS_ALLOWED:
-                logger.warning(
-                    f"Github README has {num_tokens}," f" summarizing it to {MAX_TOKENS_ALLOWED} tokens"
-                )
-                readme = Gemini().generate(query=f"Create a concise summary for the following: {readme}")
+            readme = Gemini().generate(
+                query=f"""
+                You will get a github repository project description. 
+                Your task is to createa summary for it.
+                Constraints:
+                - It should not take more than 3 sentences.
+                - It should capture the core capabilities that the repository's project provide.
+                - It should include the domain or use case the project is aiming for. For example: Prompt Monitor, Cybersecurity Threat Intelligence, Unit tests, etc. 
+                - Answer only with the summary.
+                - Don't start your answer with 'Summary:', instead just write the summary.
+                
+                
+                Github description: {readme}
+                """)
 
             documents.append(
                 Document(
                     content=readme,
-                    summary=summary,
                     metadata=DocumentMetadata(
                         url=link,
                         title=link.split("/")[-1],
                         platform=self.platform,
+                        properties=dict(query=query.content.strip())
                     )
                 )
             )
@@ -69,3 +73,5 @@ class GithubCollector(BaseCollector):
             logger.info(f"Finished scrapping GitHub repository: {link}")
 
         return documents
+
+

@@ -13,7 +13,7 @@ from src.domain.queries import CollectorQuery
 def collect_documents(
     field_of_interest: list[str], platforms: list[str]
 ) -> Annotated[list[Document], "documents"]:
-    dispatcher = DataCollectorDispatcher.build(mock=True).register_github().register_arxiv()
+    dispatcher = DataCollectorDispatcher.build(mock=False).register_github().register_arxiv()
 
     logger.info(f"Starting to retrieve documents for {len(field_of_interest)} field of interest.")
 

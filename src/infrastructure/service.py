@@ -60,10 +60,10 @@ async def feedback_endpoint(request: FeedbackQuery):
                 url = request.link
             )
         )
-        # thread = Thread(target=update_user_feedback, args=(doc))
+        # thread = Thread(target=update, args=(doc))
         # thread.name = f"update_feedback_{request.link}"
         # thread.start()
-        response = update(doc)
-        return False
+        update(doc)
+        return True
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e

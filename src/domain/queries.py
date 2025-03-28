@@ -18,6 +18,7 @@ class Query(BaseModel):
 class CollectorQuery(BaseModel):
     content: str
     platform: str | None = None
+    rejected_previously: bool = False
 
     def replace_content(self, new_content: str) -> "CollectorQuery":
         return CollectorQuery(content=new_content, platform=self.platform)

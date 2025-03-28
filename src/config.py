@@ -26,7 +26,7 @@ class Settings(BaseSettings):
 
     # Comet ML (during training)
     COMET_API_KEY: str | None = None
-    COMET_PROJECT: str = "twin"
+    COMET_PROJECT: str = "researchpal"
 
     # --- Required settings when deploying the code. ---
     # --- Otherwise, default values values work fine. ---
@@ -49,7 +49,7 @@ class Settings(BaseSettings):
     TEXT_EMBEDDING_DEVICE: str = "cpu"
 
     # DATA COLLECTION
-    DATA_SOURCE_MAX_RESULTS: int = 3
+    DATA_SOURCE_MAX_RESULTS: int = 5
 
     @property
     def OPENAI_MAX_TOKEN_WINDOW(self) -> int:
